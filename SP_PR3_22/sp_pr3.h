@@ -1,7 +1,6 @@
 #pragma once
 #include <windows.h>
 #include <tchar.h>
-#include "resource.h"
 
 #pragma once
 #define ID_MYBUTTON 1001

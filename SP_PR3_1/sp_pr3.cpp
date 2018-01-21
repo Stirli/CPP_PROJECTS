@@ -1,19 +1,4 @@
-#include <windows.h>
-#include <tchar.h>
-
-#define ID_MYBUTTON 1001
-#define ID_MYLIST 1002
-#define ID_MYEDIT 1003
-
-
-
-LRESULT CALLBACK Pr2_WndProc(HWND, UINT, WPARAM, LPARAM);
-
-HINSTANCE g_hInst;
-LPCWSTR g_lpszClassName = TEXT("sp_pr2_class");
-LPCWSTR g_lpszStaticText = TEXT("Нажмите INFO");
-LPCWSTR g_lpszButtonText = TEXT("INFO");
-LPCWSTR g_lpszAplicationTitie = TEXT("Главное окно приложения.");
+#include "sp_pr3.h"
 
 int APIENTRY _tWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance,
 	LPTSTR lpszCmdLine, int nCmdShow)
@@ -32,10 +17,9 @@ int APIENTRY _tWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance,
 	wc.lpfnWndProc = Pr2_WndProc;
 	wc.style = CS_VREDRAW | CS_HREDRAW;
 	wc.hInstance = hInstance;
-	wc.hIcon = LoadIcon(NULL, MAKEINTRESOURCE(IDI_ASTERISK));
-	wc.hCursor = LoadCursor(NULL, MAKEINTRESOURCE(IDC_ARROW));
+	wc.hIcon = LoadIcon(hInstance, MAKEINTRESOURCE(IDI_ICON1));
+	wc.hCursor = LoadCursor(hInstance, MAKEINTRESOURCE(IDC_CURSOR1));
 	wc.hbrBackground = muBrash;
-	wc.lpszMenuName = NULL;
 	wc.cbClsExtra = 0;
 	wc.cbWndExtra = 0;
 
@@ -81,24 +65,42 @@ int APIENTRY _tWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance,
 LRESULT CALLBACK Pr2_WndProc(HWND hWnd, UINT msg,
 	WPARAM wParam, LPARAM lParam)
 {
+	static HWND hwndEdit;
+	static HWND hwndListBox;
 	static HWND hwndButton;
-	static HWND staticHwnd;
 	switch (msg)
 	{
 		HDC hDC;
 	case WM_DESTROY:
 		PostQuitMessage(0);
 		break;
-		
+
+	case WM_PAINT:
+	{
+		PAINTSTRUCT ps;
+		hDC = BeginPaint(hWnd, &ps);
+		EndPaint(hWnd, &ps);
+	}
+
+	break;
 	case WM_CREATE:
 	{
-		staticHwnd = CreateWindowEx(0L, TEXT("static"), g_lpszStaticText,
+		CreateWindowEx(0L, TEXT("static"), g_lpszStaticText,
 			WS_CHILD | WS_VISIBLE | SS_CENTER,
-			10, 52, 90, 32,
+			10, 10, 100, 20,
 			hWnd, NULL, NULL, NULL);
+		hwndEdit = CreateWindowEx(0L, TEXT("edit"), L"",
+			WS_CHILD | WS_VISIBLE | ES_MULTILINE | ES_RIGHT | WS_BORDER,
+			120, 10, 100, 20,
+			hWnd, (HMENU)ID_MYEDIT, g_hInst, NULL);
+		hwndListBox = CreateWindow(TEXT("listbox"), NULL,
+			WS_CHILD | WS_VISIBLE | WS_VSCROLL | LBS_NOTIFY | WS_BORDER,
+			120, 40, 100, 100,
+			hWnd, (HMENU)ID_MYLIST,
+			g_hInst, NULL);
 		hwndButton = CreateWindowEx(0L, TEXT("button"), g_lpszButtonText,
 			WS_VISIBLE | WS_CHILD | WS_BORDER | ES_LEFT,
-			10, 10, 90, 32, hWnd,
+			230, 10, 100, 20, hWnd,
 			(HMENU)ID_MYBUTTON, g_hInst, NULL);
 		return 0;
 	}
@@ -110,32 +112,24 @@ LRESULT CALLBACK Pr2_WndProc(HWND hWnd, UINT msg,
 
 		switch (LOWORD(wParam))
 		{
+		case ID_MYEDIT:
+
+			break;
 		case ID_MYBUTTON:
+			TCHAR myText[20];
+			GetWindowText(GetDlgItem(hWnd, ID_MYEDIT), myText, 20);
 
-			static bool flag;
-			if (!flag) {
-				WNDCLASSEX inf;
-				if (GetClassInfoEx(NULL, TEXT("button"), &inf)) {
-					TCHAR szBuffer[64];
-					int strLen = wsprintf(szBuffer, TEXT("%s\n%X"), inf.lpszClassName, inf.style);
-					SetWindowText(staticHwnd, szBuffer);
-					SetWindowText((HWND)lParam, TEXT("Выход"));
-				}
-				else {
-					MessageBox(hWnd, TEXT("Не удалось получить инфо"), TEXT("ОШИБКА"), MB_OK | MB_ICONERROR);
-				}
-
-				flag = true;
-			}
-			else {
-				DestroyWindow(hWnd);
-			}
-
+			GetDlgItemText(
+				hWnd,       /* дескриптор родительского диалога */
+				ID_MYEDIT,   /* идентификатор поля */
+				myText,  /* буфер под текст */
+				20    /* размер буфера */
+			);
+			SendMessage(hwndListBox, LB_ADDSTRING, 0, (LPARAM)myText);
 			break;
 		}
 		return 0;
 	}
-
 	break;
 	default:
 
